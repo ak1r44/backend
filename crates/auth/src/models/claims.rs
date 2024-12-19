@@ -54,7 +54,7 @@ impl Claims {
     pub fn encode(&self, secret: &str) -> Result<Token, jsonwebtoken::errors::Error> {
         let token = jsonwebtoken::encode(
             &jsonwebtoken::Header::default(),
-            self,
+            &self,
             &jsonwebtoken::EncodingKey::from_secret(secret.as_ref()),
         )?;
 
@@ -81,7 +81,8 @@ impl Claims {
     }
 
     pub fn validate(&self) -> bool {
-        Utc::now().timestamp() < self.exp
+        let now = Utc::now().timestamp();
+        self.iat <= now && now <= self.exp
     }
 
     pub fn has(&self, permission: Permission) -> bool {

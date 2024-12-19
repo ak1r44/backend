@@ -1,6 +1,8 @@
 use aes_gcm::aead::{rand_core::RngCore, OsRng};
-use argon2::Config;
+use argon2::Config as Argon2Config;
 use thiserror::Error;
+
+use crate::config::Config;
 
 /// The length of the salt (32 bytes = 256 bits).
 const SALT_LENGTH: usize = 32;
@@ -32,8 +34,9 @@ pub struct CryptoUtil {
 
 impl CryptoUtil {
     pub fn new() -> Result<Self, CryptoError> {
-        let pepper = "".to_string();
-        Ok(Self { pepper })
+        Ok(Self {
+            pepper: Config::new().pepper,
+        })
     }
 
     /// Hash the password.
@@ -45,8 +48,12 @@ impl CryptoUtil {
         let salt: Vec<u8> = (0..SALT_LENGTH).map(|_| OsRng.next_u32() as u8).collect();
         let password_with_pepper = format!("{}{}", password, self.pepper);
 
-        argon2::hash_encoded(password_with_pepper.as_bytes(), &salt, &Config::default())
-            .map_err(|e| CryptoError::HashError(e.to_string()))
+        argon2::hash_encoded(
+            password_with_pepper.as_bytes(),
+            &salt,
+            &Argon2Config::default(),
+        )
+        .map_err(|e| CryptoError::HashError(e.to_string()))
     }
 
     /// Verify the password against the hash.

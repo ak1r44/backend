@@ -1,5 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug)]
+pub enum AuthError {
+    InvalidCredentials,
+    UserNotFound,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AuthResponse {
     pub token: String,
